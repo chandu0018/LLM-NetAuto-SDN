@@ -1,0 +1,45 @@
+{
+  "devices": [
+    {
+      "id": "of:0000000000000003",
+      "name": "of:0000000000000003",
+      "type": "switch",
+      "available": true
+    },
+    {
+      "id": "of:0000000000000001",
+      "name": "of:0000000000000001",
+      "type": "switch",
+      "available": true
+    },
+    {
+      "id": "of:0000000000000002",
+      "name": "of:0000000000000002",
+      "type": "switch",
+      "available": true
+    }
+  ],
+  "hosts": [],
+  "links": [
+    {
+      "src": "of:0000000000000002",
+      "dst": "of:0000000000000003",
+      "state": "ACTIVE"
+    },
+    {
+      "src": "of:0000000000000002",
+      "dst": "of:0000000000000001",
+      "state": "ACTIVE"
+    },
+    {
+      "src": "of:0000000000000003",
+      "dst": "of:0000000000000002",
+      "state": "ACTIVE"
+    },
+    {
+      "src": "of:0000000000000001",
+      "dst": "of:0000000000000002",
+      "state": "ACTIVE"
+    }
+  ]
+}

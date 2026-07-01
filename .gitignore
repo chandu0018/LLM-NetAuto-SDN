@@ -1,0 +1,123 @@
+# LLM-NetAuto-SDN .gitignore
+
+# ==============================================
+# Python
+# ==============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ==============================================
+# Virtual Environment
+# ==============================================
+venv/
+ENV/
+env/
+.venv/
+.env
+.env.local
+
+# ==============================================
+# IDE
+# ==============================================
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ==============================================
+# Testing
+# ==============================================
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ==============================================
+# Data and Logs
+# ==============================================
+data/chromadb/*
+!data/chromadb/.gitkeep
+data/benchmark_results.json
+logs/*.log
+logs/*
+!logs/.gitkeep
+*.log
+
+# ==============================================
+# Docker
+# ==============================================
+.docker/
+
+# ==============================================
+# OS
+# ==============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==============================================
+# Jupyter
+# ==============================================
+.ipynb_checkpoints
+*.ipynb
+
+# ==============================================
+# Model Files
+# ==============================================
+*.onnx
+*.pt
+*.pth
+*.h5
+*.pkl
+*.model
+
+# ==============================================
+# Temporary Files
+# ==============================================
+*.tmp
+*.temp
+*.bak
+*.cache
+/tmp/
+
+# ==============================================
+# PID Files
+# ==============================================
+*.pid
+/tmp/llm-netauto-*.pid

@@ -1,0 +1,151 @@
+version: '3.8'
+
+services:
+  # ONOS SDN Controller
+  onos:
+    image: onosproject/onos:2.7.0
+    container_name: llm-netauto-onos
+    ports:
+      - "8181:8181"  # REST API
+      - "8101:8101"  # CLI
+      - "6653:6653"  # OpenFlow
+    environment:
+      - ONOS_APPS=org.onosproject.openflow,org.onosproject.fwd,org.onosproject.hostprovider
+    networks:
+      - sdn-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/onos/v1/devices"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
+
+  # ChromaDB Vector Database
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: llm-netauto-chromadb
+    ports:
+      - "8001:8000"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+    networks:
+      - sdn-network
+    restart: unless-stopped
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: llm-netauto-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    networks:
+      - sdn-network
+    restart: unless-stopped
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:10.0.0
+    container_name: llm-netauto-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana_dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana_datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - sdn-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Ollama LLM Server (optional, for live mode)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-netauto-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - sdn-network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+      - live  # Only start in live mode
+    restart: unless-stopped
+
+  # FastAPI Backend
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: llm-netauto-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - ONOS_HOST=onos
+      - ONOS_PORT=8181
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - OLLAMA_HOST=ollama
+      - OLLAMA_PORT=11434
+      - PROMETHEUS_PORT=9091
+    volumes:
+      - .:/app
+    networks:
+      - sdn-network
+    depends_on:
+      - chromadb
+    profiles:
+      - app
+    restart: unless-stopped
+
+  # Streamlit Dashboard
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: llm-netauto-dashboard
+    ports:
+      - "8501:8501"
+    environment:
+      - DEMO_MODE=${DEMO_MODE:-false}
+      - FASTAPI_PORT=8000
+    volumes:
+      - .:/app
+    networks:
+      - sdn-network
+    depends_on:
+      - fastapi
+    profiles:
+      - app
+    restart: unless-stopped
+
+networks:
+  sdn-network:
+    driver: bridge
+
+volumes:
+  chromadb_data:
+  prometheus_data:
+  grafana_data:
+  ollama_data:

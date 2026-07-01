@@ -1,0 +1,664 @@
+AI-Driven Traffic Classification, Intelligent Load
+Balancing, and Self-Healing Mechanisms in SDN
+Dr. Nagaraja G S1 , Adarsh Adiga2
+1,2
+
+Department of Computer Science and Engineering, RV College of Engineering, Bengaluru, Karnataka, India
+Email: nagarajags@rvce.edu.in, adarshadiga26@gmail.com
+
+Abstract—Software-Defined Networking (SDN) decouples the
+control plane from the physical forwarding plane, allowing
+network flows to be managed centrally and programmatically.
+However, legacy static routing algorithms are unable to maintain Quality of Service (QoS) constraints under heterogeneous
+traffic. For example, real-time applications such as Voice over
+IP (VoIP) and video streaming frequently share path resources
+with bulk data transfers, causing link congestion and subsequent
+packet drops. To address these limitations, this work presents
+an intelligent SDN control plane architecture that integrates
+automated traffic classification, dynamic path allocation, and
+autonomous failure recovery. A flow-based classifier utilizing
+a Random Forest model identifies traffic categories at the
+ingress switch using statistical features such as packet sizes and
+packet rates, bypassing payload inspection overhead. Forwarding
+rules are computed dynamically based on these classes, routing
+delay-sensitive media through low-latency paths and offloading
+bulk transfers to secondary links. Link state transitions trigger
+an immediate self-healing cycle, rerouting active flows within
+milliseconds of a physical outage. Experimental evaluations in
+Mininet controlled by a Ryu controller demonstrate that the
+proposed framework minimizes packet loss and jitter during
+link failures while optimizing aggregate throughput across the
+topology.
+Index Terms—Software Defined Networking (SDN), Machine
+Learning, Random Forest, Quality of Service (QoS), Intelligent
+Load Balancing, Self-Healing, Traffic Classification, OpenFlow.
+
+I. I NTRODUCTION
+Modern campus and enterprise networks are required to
+handle a highly diverse mix of traffic with strict performance
+constraints. While real-time applications like VoIP demand
+minimal latency and low jitter, file transfers prioritize throughput. Traditional routing protocols, such as OSPF, rely on
+static link metrics or shortest-path algorithms. These protocols are application-agnostic, resulting in uniform routing
+of heterogeneous packets. This agnostic handling leads to
+localized congestion and buffer overflows on primary paths,
+while alternative redundant paths remain underutilized.
+Traditionally, hardware-based routers have been tightly
+coupled systems where the control and forwarding planes
+are implemented on the same physical unit. This distributed
+control plane architecture required network administrators to
+manually configure individual nodes. Consequently, changes
+in a large topology necessitated updating static configuration
+files on every machine. Under transient traffic bursts, legacy
+routers were unable to dynamically reroute around congested
+links due to slow convergence and updates in routing metrics.
+This static configuration resulted in unbalanced link utilization,
+
+leaving redundant paths idle while primary links suffered from
+congestion.
+H3
+
+H4
+S2
+
+Path A
+
+H7
+
+H1
+S1
+
+S4
+H8
+
+H2
+Path B
+
+S3
+H5
+
+H6
+
+Fig. 1. The emulated 4-switch, 8-host diamond backbone topology. Path
+A (S1 → S2 → S4 ) acts as the primary low-latency link, while Path B
+(S1 → S3 → S4 ) serves as the secondary path.
+
+Network engineers utilize queuing theory models to analyze
+this congestion. In a single-server queue (M/M/1), packet
+arrivals follow a Poisson distribution with rate λ, and the
+switch interface transmits packets at an exponential service
+rate µ. The average waiting time W in the queue buffer is
+formulated as:
+1
+W =
+(1)
+µ−λ
+As the arrival rate λ approaches the service capacity µ, the
+average waiting time W increases exponentially, leading to
+buffer overflows and packet drops. Because legacy routing
+protocols lack real-time visibility into active flows, they cannot
+monitor queue state transitions to proactively prevent packet
+loss.
+Software-Defined Networking (SDN) addresses these challenges by decoupling the control plane from the data plane.
+The logically centralized controller maintains a global view of
+the network topology (as illustrated in Fig. 1) and installs flow
+rules dynamically using OpenFlow. Modern controllers utilize
+OpenFlow 1.3, which supports multi-table pipelining and finegrained packet matching, allowing switches to process traffic
+based on specific header combinations. However, typical SDN
+deployments continue to rely on static forwarding policies
+or simple transport-port matching. Since port numbers are
+easily obfuscated and Deep Packet Inspection (DPI) introduces
+significant processing latency at the controller, lightweight
+
+flow-level classification mechanisms that run inline within the
+control loop are required.
+The proposed architecture integrates application-aware path
+selection, automated failover, and Random Forest classification. The controller collects flow statistics, such as average
+packet size and packet rate, to classify active streams. Prioritized traffic (voice and video) is carried on the primary link,
+while bulk file transfers are sent through secondary paths. In
+the event of a link failure, a self-healing protocol detects the
+link-down event and automatically reinstalls alternative paths
+to prevent session loss.
+II. R ELATED W ORK
+The integration of machine learning in software-defined architectures has been extensively investigated to enhance traffic
+classification and routing. Adil and Alfoudi [1] investigated
+Decision Trees and Support Vector Machines, proving that
+statistical flow features can be used instead of port-based
+flow identification in SDN traffic classification. Similarly,
+Serag et al. [2] proposed a machine learning framework to
+enhance QoS, demonstrating that predictive models reduce
+queueing delay for high-priority packets by combining traffic prediction with dynamic queue mapping in OpenFlow
+switches. Although deep neural networks can achieve high
+classification accuracy, Nagpal et al. [3] cautioned that such
+models introduce substantial computational overhead during
+the flow setup phase, potentially creating bottlenecks in Ryubased controller configurations.
+Further research in traffic identification has focused on
+lightweight model structures. Elagin [15] developed a traffic classification model using artificial intelligence elements
+to manage resources. Dmitrieva et al. [16] analyzed traffic
+identification methods for resource management, noting that
+flow statistics can successfully defeat port-masking techniques.
+Nyaramneni et al. [17] evaluated advanced ensemble machine
+learning models to predict SDN traffic, while Samaan and
+Jeiad [18] proposed a machine learning pipeline using Spark
+for online classification, verifying the feasibility of executing
+model predictions inline.
+Dynamic load balancing is another key area. Rostami and
+Goli-Bidgoli [5] surveyed QoS-aware load distribution in IoT
+networks, highlighting the challenges of managing heterogeneous traffic under strict resource constraints. In their survey
+on AI-driven SDN load balancing, Alhilali and Montazerolghaem [6] reported that supervised learning models adapt more
+effectively to topological changes compared to conventional
+heuristic algorithms, providing more predictable path selection
+during transient failures. Farahi [14] provided a comprehensive
+overview of load balancing methods in SDNs, comparing
+traditional heuristic and learning-based approaches.
+Du et al. [7] addressed data center traffic balancing by
+distributing workloads evenly across core switches to avoid
+localized congestion. They investigated flow-splitting techniques that dynamic load distribution without introducing
+packet reordering issues at the destination hosts. Ananth [8]
+proposed a hybrid load balancer that estimates traffic volumes
+
+using OpenFlow statistics and proactively updates routing
+paths to prevent congestion, presenting metrics for matching
+path capacity to incoming aggregate flows. Srinivasan et al. [9]
+utilized Bayesian Optimization to maintain SLA requirements
+in IoT environments, developing a probabilistic model that
+adapts routing pathways based on uncertainty metrics.
+Advanced optimization algorithms and reinforcement learning have also been explored. Casas-Velasco et al. [10] proposed DRSIR, a deep reinforcement learning routing algorithm
+that computes paths based on topology-wide state variables.
+Faezi and Shirmarz [11] surveyed machine learning applications across different SDN planes, detailing how classifiers
+can be deployed. Tache et al. [12] analyzed optimization
+algorithms for routing, load balancing, and delay in SDN,
+while Wassie et al. [13] utilized deep learning for traffic
+prediction to explain QoS behavior. Sun et al. [19] proposed
+ScaleDRL for traffic engineering with pinning control to balance scalability and performance. Finally, Benedetto et al. [20]
+studied semi-distributed traffic engineering for elastic flows. In
+related computing fields, Maulana and Kusuma [4] evaluated
+deep learning models for malware classification using system
+call sequences, showing the general adaptability of sequential
+learning under complex structures.
+The proposed framework addresses these challenges by
+implementing a lightweight Random Forest model. Compared
+to deep learning models and legacy systems, this design
+provides low classification latency and rapid path recalculation
+under dynamic network conditions.
+III. S YSTEM A RCHITECTURE
+The proposed system features a three-tier architecture that
+separates application logic, control policies, and physical forwarding devices. Fig. 2 illustrates this division.
+Application Plane
+Real-Time NOC Dashboard
+Traffic Injection, Failure Simulation, Data Visualization
+REST API / JSON
+Shared State Sync
+
+Control Plane
+Ryu SDN Controller
+Random Forest Classifier, Intelligent
+Load Balancing, Self-Healing Module
+OpenFlow 1.3 Protocol
+(FlowMod, PacketIn)
+
+Data Plane
+Emulated Mininet Network
+OpenFlow Switches (S1 − S4 )
+& End-User Hosts (H1 − H8 )
+Fig. 2. Three-Tier System Architecture of the AI-Driven SDN Framework.
+
+A. Application Plane
+The interactive NOC dashboard allows for real-time monitoring and control. Built with Streamlit, the application performs the following functions:
+1) Traffic Injection: Runs network testing commands directly within host namespaces, executing iperf and ping
+processes to generate voice, video, and file transfer
+flows.
+2) Dynamic Visualization: Renders the live network topology, reading telemetry from the controller to highlight
+the active routing paths.
+3) Fault Injection: Simulates physical link outages by disabling switch interfaces, utilizing a shared JSON file to
+synchronize state changes.
+The dashboard and controller communicate using structured
+JSON payloads via a REST API. For instance, when a link
+failure is simulated, the dashboard sends a POST request
+containing the source switch, destination switch, and port
+status:
+{
+"link_id": "S1-S2",
+"status": "down",
+"timestamp": 1717243912
+}
+The controller processes this payload to immediately update its
+internal link state registry, initiating path recalculation without
+waiting for discovery timeouts.
+B. Control Plane
+The Ryu SDN controller runs the core OpenFlow 1.3 control
+logic. When a new flow arrives, the controller receives a
+Packet-In message, extracts flow features (packet size and
+packet rate), and classifies the stream using the serialized
+Random Forest model. It then issues Flow-Mod messages to
+install forwarding entries on the switches, dynamically routing
+paths and bypassing failed links.
+The control plane utilizes a single-table OpenFlow pipeline
+(Table 0) with rule prioritization. At switch initialization,
+a low-priority Table-Miss entry (priority 0) is installed to
+forward all unmatched packets to the controller as PacketIn events. Once the flow is classified, the controller issues a
+Flow-Mod message to install a high-priority forwarding rule
+(priority 10) matched to the source and destination IP headers,
+ensuring subsequent packets are forwarded at line rate without
+controller intervention.
+C. Data Plane
+The data plane emulated in Mininet consists of four OpenFlow switches (S1 , S2 , S3 , S4 ) configured in a diamond backbone topology. Two hosts (H1 to H8 ) are connected to each
+switch. This design ensures that traffic between hosts on
+opposite switches (e.g., S1 to S4 ) has two disjoint paths: Path
+A (S1 → S2 → S4 ) and Path B (S1 → S3 → S4 ). The core
+links connecting the switches use virtual Ethernet (veth) pairs
+with a capacity of 100 Mbps and a propagation delay of 1 ms.
+
+IV. M ETHODOLOGY AND I MPLEMENTATION
+A. Dataset and Machine Learning Training
+Traffic classification utilizes a statistical model to eliminate processing delays associated with payload inspection. A
+dataset of simulated flows was collected to represent three
+types of applications: VoIP, Video Streaming, and File Transfer. The statistical parameters of this feature distribution are
+summarized in Table I.
+TABLE I
+T RAFFIC F EATURE D ISTRIBUTION PARAMETERS
+Traffic Class
+
+Mean Size (Bytes)
+
+Mean Rate (pps)
+
+Samples
+
+VoIP
+Video
+File Transfer
+
+70
+800
+1450
+
+50
+350
+800
+
+500
+500
+500
+
+A Random Forest Classifier with 100 decision trees was
+trained using scikit-learn. Split decisions are evaluated using
+the Gini impurity criterion to ensure low computational overhead during inline inference, minimizing classification latency
+within the control loop.
+For a node containing J classes, the Gini impurity IG (p) is
+defined as:
+J
+X
+IG (p) = 1 −
+p2i
+(2)
+i=1
+
+where pi is the probability of a packet belonging to class
+i (J = 3 in this study). Additionally, the information gain
+during a split
+Pis measured using Shannon Entropy, defined as
+H(X) = − pi log2 pi . By maximizing the Gini gain at each
+node split, the algorithm builds individual decision trees that
+isolate flow profiles based on packet size thresholds and packet
+rate boundaries.
+The information gain IG(T, a) for split parameter a on
+training set T is computed based on entropy reductions.
+This mathematical criteria ensures that features separating file
+transfer flows (high packet size) from VoIP (small packet size)
+are placed near the root of the decision trees, minimizing tree
+depth and classification latency.
+B. Path Cost Optimization Formulation
+To optimize routing decisions, a path cost function CP
+is defined for any available routing path P . The controller
+evaluates the cost of all viable paths and selects the path that
+minimizes this objective function:
+UL
++ w2 · DL + w3 · PL
+(3)
+CL
+where UL represents current bandwidth utilization, CL represents maximum link capacity (100 Mbps), DL is the total propagation and queuing delay, and P
+PL is the packet loss rate. The
+values w1 , w2 , w3 are weights ( wi = 1). For delay-sensitive
+traffic classes (VoIP and Video), the weights are configured
+to prioritize low latency (w2 = 0.7, w1 = 0.2, w3 = 0.1).
+For throughput-intensive traffic classes (File Transfers), the
+weights favor path capacity (w1 = 0.7, w2 = 0.1, w3 = 0.2).
+CP = w1 ·
+
+New Flow Packet arrives at Switch S1
+
+S1 sends OpenFlow Packet-In to Ryu Controller
+
+Ryu Controller extracts packet sizes and rates
+
+Ryu Controller runs Random Forest Inference
+
+Yes
+
+Install Flow Rules for
+Path A
+(S1 → S2 → S4 )
+
+No
+
+Is VoIP
+or Video?
+
+Install Flow Rules for
+Path B
+(S1 → S3 → S4 )
+
+Algorithm 1 Intelligent Load Balancing & Self-Healing Routing
+Require: Source Ssrc , Destination Sdst , Traffic Ttype
+Require: Link Status Database Lstatus
+1: (P athA , P athB ) ← GetPaths(Ssrc , Sdst )
+2: U pA ← CheckLinks(P athA , Lstatus )
+3: U pB ← CheckLinks(P athB , Lstatus )
+4: ChosenP ath ← NULL
+5: if Ttype == ”FILE TRANSFER” then
+6:
+if U pB is TRUE then
+7:
+ChosenP ath ← P athB {Prefer Secondary Path}
+8:
+else if U pA is TRUE then
+9:
+ChosenP ath ← P athA {Fallback to Primary}
+10:
+end if
+11: else
+12:
+if U pA is TRUE then
+13:
+ChosenP ath ← P athA {Prefer Primary Path}
+14:
+else if U pB is TRUE then
+15:
+ChosenP ath ← P athB {Fallback to Secondary}
+16:
+end if
+17: end if
+18: if ChosenP ath is NULL then
+19:
+Drop Packet {Network Partitioned}
+20: else
+21:
+P ort ← GetOutputPort(CurrentN ode, ChosenP ath)
+22:
+InstallFlowRule(M atch, P ort, T imeout = 10)
+23:
+ForwardPacket(P ort)
+24: end if
+
+Fig. 3. Flow classification and path selection decision pipeline in the SDN
+controller.
+
+C. Intelligent Load Balancing Algorithm
+When the controller receives a classification prediction from
+the ML model, it executes the intelligent load balancing algorithm (Algorithm 1). To actively prevent network congestion,
+the algorithm enforces a strict segregation policy. Delaysensitive multimedia traffic (classified as VoIP and Video)
+requires the most direct, lowest-latency route. Therefore, it
+is routed across the primary ”Upper” path of the diamond
+topology (Path A). Conversely, throughput-intensive traffic,
+such as File Transfers, is routed via the secondary path (Path
+B) to maximize bandwidth utilization and avoid congestion on
+the latency-sensitive path.
+D. Protocol Anomalies and Flow Rule Expiration
+During socket initialization, UDP video flows sporadically
+produce ICMP Port Unreachable errors. The controller has
+the potential for misclassifying these ICMP packets as VoIP,
+which would cause routing conflicts. To mitigate this, the
+controller inspects ICMP headers, selectively routing ICMP
+Echo Requests (Type 8) while discarding Type 3 Destination
+Unreachable error messages to prevent misclassification.
+Flow rules are installed with an idle timeout of 10 seconds.
+This timeout causes switches to periodically discard expired
+entries. When a host switches traffic types, the old flow rules
+
+expire, prompting the controller to reclassify and redirect the
+subsequent packets.
+E. System Overhead and Discussion
+Deploying machine learning models within the SDN control
+plane introduces additional processing overhead and latency.
+To measure this, benchmarking was performed on the execution latency of the classification module.
+On receiving a Packet-In message, the controller extracts
+features, runs model inference, and pushes Flow-Mod messages. The inference latency of the Random Forest model is
+approximately 1.2 ms on average in the experimental testbed
+environment (Intel Core i7, 16 GB RAM), significantly below
+CNNs or LSTM deep learning models that usually require 15
+to 30 ms on standard CPU systems.
+Additionally, the Random Forest model has a low memory
+footprint, requiring less than 2 MB of disk space for the serialized classifier model and utilizing less than 10 MB of system
+RAM when loaded. This minimizes resource consumption,
+leaving sufficient CPU and memory resources for routing and
+switches topology discovery events.
+The selection of the flow rule idle timeout represents a
+critical trade-off between control plane overhead and network
+responsiveness. A shorter timeout (e.g., 2 seconds) minimizes stale entries in the switch flow table but increases
+the frequency of Packet-In events, leading to elevated con-
+
+troller CPU utilization. Conversely, a longer timeout (e.g.,
+60 seconds) reduces controller overhead at the expense of
+routing responsiveness. An idle timeout of 10 seconds was
+empirically determined to balance computational efficiency
+and adaptability.
+Hardware memory constraints in physical switches present
+another significant challenge. Modern OpenFlow switches
+implement Ternary Content-Addressable Memory (TCAM) to
+match packets at line speed. TCAM is expensive and powerhungry, limiting the number of entries in a switch flow table to
+only thousands. The proposed framework minimizes flow rule
+footprint in TCAM to prevent switch memory overflow under
+high concurrent flow arrival rates by offloading routing logic
+based on statistical flow profiles instead of explicit matching
+against individual packets.
+V. R ESULTS AND A NALYSIS
+A. Traffic Classification Accuracy
+The Random Forest model was evaluated using a 20% test
+split. The classification model achieved an overall accuracy of
+99.2%. Table II lists the class-specific performance.
+TABLE II
+T RAFFIC C LASSIFICATION M ETRICS
+Traffic Class
+
+Precision
+
+Recall
+
+F1-Score
+
+Support
+
+VoIP
+Video
+File Transfer
+
+0.99
+0.98
+1.00
+
+1.00
+0.98
+0.99
+
+0.99
+0.98
+0.99
+
+100
+100
+100
+
+B. Traffic Separation Performance
+To evaluate path load balancing, a stress test was executed
+between H1 and H7 , initiating a 10 Mbps UDP video stream
+and an unrestricted TCP file transfer simultaneously.
+Under shortest-path routing, both streams were directed over
+the S1 → S2 → S4 link. The TCP flow saturated the queues
+on switch S1 , increasing jitter and causing a 14.2% packet loss
+for the video stream. Under the proposed model, the controller
+routed the video stream via Path A and offloaded the file
+transfer to Path B. Table III compares these metrics.
+As shown in Table III, the split-path routing model reduced
+video packet loss to 0.1% and dropped jitter to 4 ms. Jitter J
+is calculated dynamically following the RFC 1889 standard:
+|(Ri − Si ) − (Ri−1 − Si−1 )| − Ji−1
+16
+
+Metric
+
+Traditional SDN
+
+AI-Driven SDN
+
+Video Packet Loss
+Video Avg Jitter
+File Transfer Speed
+Total Backbone Util.
+
+14.2%
+42 ms
+48 Mbps
+50% (Congested)
+
+0.1%
+4 ms
+95 Mbps
+100% (Balanced)
+
+where Si is the sender timestamp of packet i, and Ri is the
+receiver timestamp.
+Offloading the file transfer to the secondary path also
+allowed it to reach a speed of 95 Mbps, maximizing backbone
+capacity.
+C. Autonomous Rerouting Delay
+To evaluate autonomous failure recovery, the link between
+S1 and S2 was disabled during an active video streaming
+session. The controller detected the state change via the synchronized JSON link registry, marking the path as unavailable.
+The subsequent packet triggered a Packet-In event, prompting
+the controller to calculate the alternative route and install
+fallback forwarding rules along Path B (S1 → S3 → S4 ).
+The end-to-end failover was completed in 18 ms, preventing
+session disconnection or packet drops. The failover execution
+latency breakdown is summarized in Table IV.
+TABLE IV
+FAILOVER R ECOVERY P ERFORMANCE T ELEMETRY
+
+The metrics in Table II are calculated using standard
+classification equations for Precision (T P/[T P + F P ]),
+Recall (T P/[T P + F N ]), and F1-Score (2 · [Precision ·
+Recall]/[Precision + Recall]), where T P , F P , and F N represent True Positives, False Positives, and False Negatives,
+respectively.
+Some overlap occurred between high-rate VoIP and lowrate video streams due to similar packet intervals. However,
+because the system routes both categories over Path A, this
+minor classification error does not degrade traffic performance.
+
+Ji = Ji−1 +
+
+TABLE III
+Q O S M ETRICS DURING C ONCURRENT T RAFFIC S IMULATION
+
+(4)
+
+Failover Stage
+
+Average Latency (ms)
+
+Contribution (%)
+
+Link Outage Detection
+Flow Mod Rule Installation
+
+12.5 ms
+5.7 ms
+
+68.7%
+31.3%
+
+Total Traffic Recovery
+
+18.2 ms
+
+100.0%
+
+VI. C ONCLUSION AND F UTURE S COPE
+An SDN controller approach combining the Random Forest
+classification algorithm with application-scheduled path provisioning and link failure recovery has been proposed. The
+architecture was evaluated on a 4-switch diamond topology,
+automatically classifying voice and video vs data flows based
+on statistical header features - thus avoiding the delay of
+deep packet analysis. Dynamic traffic steering improves the
+throughput of delay-sensitive multimedia streams and reduces
+jitter using the cost optimization path selection algorithm. The
+self-healing components recover from physical link failures in
+18 ms.
+Future work will extend this framework to larger topologies
+like Fat-Tree or leaf-spine. Also, incorporating reinforcement
+learning models will enable the controller to learn real-time
+link utilization metrics in an automatic and online fashion.
+R EFERENCES
+[1] S. Adil and A. Alfoudi, “Traffic dataclassification in SDN network based
+on machine learning algorithms,” Wasit Journal for Pure Sciences, vol.
+3, pp. 161–171, 2024, doi: 10.31185/wjps.375.
+
+[2] R. H. Serag, M. S. Abdalzaher, H. A. E. A. Elsayed, et al., “Software
+Defined Network Traffic Classification for QoS Optimization Using
+Machine Learning,” Journal of Network and Systems Management, vol.
+33, p. 41, 2025, doi: 10.1007/s10922-025-09911-6.
+[3] M. Nagpal, K. Desai, and K. Nandan, “Optimized Traffic Classification
+System for Software-Defined Networking Using a Deep Learning-Based
+Approach,” International Journal of Intelligent Systems and Applications
+in Engineering, vol. 12, no. 21s, pp. 1429–1434, 2024.
+[4] R. J. Maulana and G. P. Kusuma, “Malware Classification Based on
+System Call Sequences Using Deep Learning,” Advances in Science,
+Technology and Engineering Systems Journal, vol. 5, no. 4, pp. 207–
+216, 2020, doi: 10.25046/aj050426.
+[5] M. Rostami and S. Goli-Bidgoli, “An Overview of QoS-aware Load
+Balancing Techniques in SDN-based IoT Networks,” Journal of Cloud
+Computing, vol. 13, p. 89, 2024, doi: 10.1186/s13677-024-00651-7.
+[6] A. H. Alhilali and A. Montazerolghaem, “Artificial Intelligence Based
+Load Balancing in SDN: A Comprehensive Survey,” Internet of Things,
+vol. 22, p. 100814, 2023, doi: 10.1016/j.iot.2023.100814.
+[7] Q. Du, X. Cui, H. Tang, and X. Chen, “Review of Load Balancing Mechanisms in SDN-Based Data Centers,” Journal of Computer and Communications, vol. 12, pp. 49–66, 2024, doi: 10.4236/jcc.2024.121004.
+[8] B. Ananth, “Efficient Hybrid Load Balancer for Software Defined
+Networks Using OpenFlow Accuracy Prediction,” International Journal
+of Intelligent Systems and Applications in Engineering, vol. 12, no. 21s,
+pp. 1772–1778, 2024.
+[9] G. Srinivasan, G. S. Sekhar, and P. Suresh, “Reliable Load Balanced
+Routing Policy Using Bayesian Optimization for SDN-IoT Applications,” International Journal of Intelligent Systems and Applications in
+Engineering, vol. 12, no. 3, pp. 445–453, 2024.
+[10] D. M. Casas-Velasco, O. M. Caicedo Rendon, and N. L. S. da Fonseca,
+“DRSIR: A Deep Reinforcement Learning Approach for Routing in
+Software-Defined Networking,” IEEE Transactions on Network and
+Service Management, 2021, doi: 10.1109/TNSM.2021.3132491.
+[11] S. Faezi and A. Shirmarz, “A Comprehensive Survey on Machine
+Learning Using in Software Defined Networks (SDN),” Human-Centric
+Intelligent Systems, vol. 3, pp. 312–343, 2023, doi: 10.1007/s44230-02300025-3.
+[12] M. D. Tache, O. Păscuţoiu, and E. Borcoci, “Optimization Algorithms
+in SDN: Routing, Load Balancing, and Delay Optimization,” Applied
+Sciences, vol. 14, no. 14, p. 5967, 2024, doi: 10.3390/app14145967.
+[13] G. Wassie, J. Ding, and Y. Wondie, “Traffic Prediction in SDN for
+Explainable QoS Using Deep Learning Approach,” Scientific Reports,
+vol. 13, p. 20607, 2023, doi: 10.1038/s41598-023-46471-8.
+[14] R. Farahi, “A Comprehensive Overview of Load Balancing Methods in
+Software-Defined Networks,” Discover Internet of Things, vol. 5, p. 6,
+2025, doi: 10.1007/s43926-025-00098-5.
+[15] V. S. Elagin, “Traffic Classification Model in Software-Defined Networks with Artificial Intelligence Elements,” Proceedings of Telecommunication Universities, vol. 9, no. 5, pp. 66–78, 2023, doi: 10.31854/1813324X-2023-9-5-66-78.
+[16] J. S. Dmitrieva, D. V. Okuneva, and V. S. Elagin, “Analyzing Traffic
+Identification Methods for Resource Management in SDN,” Proceedings
+of Telecommunication Universities, vol. 9, no. 6, pp. 42–57, 2023, doi:
+10.31854/1813-324X-2023-9-6-42-57.
+[17] S. Nyaramneni, T. Potluri, and J. Somavarapu, “Advanced Ensemble
+Machine Learning Models to Predict SDN Traffic,” Procedia Computer
+Science, vol. 230, pp. 417–426, 2023, doi: 10.1016/j.procs.2023.12.097.
+[18] S. Samaan and H. A. Jeiad, “Architecting a Machine Learning Pipeline
+for Online Traffic Classification in Software Defined Networking Using
+Spark,” IAES International Journal of Artificial Intelligence, vol. 12, no.
+2, pp. 861–873, 2023, doi: 10.11591/ijai.v12.i2.pp861-873.
+[19] P. Sun, Z. Guo, J. Lan, et al., “ScaleDRL: A Scalable Deep Reinforcement Learning Approach for Traffic Engineering in SDN with
+Pinning Control,” Computer Networks, vol. 190, p. 107891, 2021, doi:
+10.1016/j.comnet.2021.107891.
+[20] E. Benedetto, I. Filippini, J. Elias, F. Martignon, and Y. Shen, “Semidistributed Traffic Engineering for Elastic Flows in Software Defined
+Networks,” in Proc. IEEE International Conference on Communications
+(ICC), 2022, doi: 10.1109/ICC45855.2022.9838597.
+
+

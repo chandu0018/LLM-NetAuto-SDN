@@ -1,0 +1,74 @@
+[
+  {
+    "timestamp": "2026-04-30T23:40:57.066015",
+    "intent": "Allow HTTP from h1 to h3",
+    "success": true,
+    "latency_ms": 1849.0145206451416,
+    "deployment_method": "intent_framework",
+    "summary": "Traffic from 10.0.0.1 to 10.0.0.3 (tcp) will be allowed. Rule priority: 40000."
+  },
+  {
+    "timestamp": "2026-04-30T23:40:59.693855",
+    "intent": "Block all traffic from h2",
+    "success": true,
+    "latency_ms": 2621.344566345215,
+    "deployment_method": "flow_rule",
+    "summary": "Traffic from 10.0.0.2 to None (None) will be blocked. Rule priority: 50000."
+  },
+  {
+    "timestamp": "2026-04-30T23:41:02.033327",
+    "intent": "Prioritize VoIP traffic on UDP port 5060",
+    "success": true,
+    "latency_ms": 2335.869789123535,
+    "deployment_method": "flow_rule",
+    "summary": "Traffic from None to None will be prioritized with high priority (60000)."
+  },
+  {
+    "timestamp": "2026-04-30T23:41:44.869782",
+    "intent": "Block all traffic from h2",
+    "success": true,
+    "latency_ms": 2064.77952003479,
+    "deployment_method": "intent_framework",
+    "summary": "Traffic from 10.0.0.2 to None (None) will be blocked. Rule priority: 50000."
+  },
+  {
+    "timestamp": "2026-04-30T23:42:03.984085",
+    "intent": "Allow HTTP from h1 to h3",
+    "success": true,
+    "latency_ms": 2632.9097747802734,
+    "deployment_method": "intent_framework",
+    "summary": "Traffic from 10.0.0.1 to 10.0.0.3 (tcp) will be allowed. Rule priority: 40000."
+  },
+  {
+    "timestamp": "2026-04-30T23:42:05.587337",
+    "intent": "Block all traffic from h2",
+    "success": true,
+    "latency_ms": 1594.4786071777344,
+    "deployment_method": "intent_framework",
+    "summary": "Traffic from 10.0.0.2 to None (None) will be blocked. Rule priority: 50000."
+  },
+  {
+    "timestamp": "2026-04-30T23:42:08.541066",
+    "intent": "Prioritize VoIP traffic on UDP port 5060",
+    "success": true,
+    "latency_ms": 2947.2875595092773,
+    "deployment_method": "flow_rule",
+    "summary": "Traffic from None to None will be prioritized with high priority (60000)."
+  },
+  {
+    "timestamp": "2026-04-30T23:42:11.118321",
+    "intent": "Isolate h4 from the network",
+    "success": true,
+    "latency_ms": 2572.124719619751,
+    "deployment_method": "intent_framework",
+    "summary": "Device None will be isolated from the network."
+  },
+  {
+    "timestamp": "2026-04-30T23:42:13.276595",
+    "intent": "Rate limit h5 to 10 Mbps",
+    "success": true,
+    "latency_ms": 2151.607036590576,
+    "deployment_method": "flow_rule",
+    "summary": "Traffic from 10.0.0.5 will be rate-limited to 10 Mbps."
+  }
+]
